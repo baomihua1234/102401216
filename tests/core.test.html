@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>失物有迹｜单元测试</title><style>body{font-family:"Microsoft YaHei",sans-serif;max-width:820px;margin:40px auto;padding:0 20px;color:#14213d}h1{margin-bottom:4px}p{color:#63708a}.summary{padding:14px;background:#eaf1ff;border-radius:8px}.pass,.fail{padding:9px 12px;margin:7px 0;border-radius:6px}.pass{background:#e5f6ef;color:#08734c}.fail{background:#fff0f0;color:#a62828}</style></head><body><h1>失物有迹：核心逻辑单元测试</h1><p>直接用 Chrome 打开本文件即可执行。共覆盖输入校验、搜索筛选和状态变更。</p><div id="summary" class="summary"></div><div id="results"></div><script src="../js/core.js"></script><script>
+const C=window.LostFoundCore, rows=[
+ ['01 合法信息可发布',()=>C.validateListing({type:'lost',title:'校园卡',category:'证件卡类',location:'图书馆',date:'2026-10-01',contact:'wx01',description:'蓝色卡套'}).valid],
+ ['02 缺少物品名称被拦截',()=>!C.validateListing({type:'lost',title:'',category:'证件卡类',location:'图书馆',date:'2026-10-01',contact:'wx01',description:'蓝色卡套'}).valid],
+ ['03 缺少联系方式被拦截',()=>!C.validateListing({type:'found',title:'耳机',category:'数码设备',location:'教室',date:'2026-10-01',contact:'',description:'黑色'}).valid],
+ ['04 非法类型被拦截',()=>!C.validateListing({type:'other',title:'耳机',category:'数码设备',location:'教室',date:'2026-10-01',contact:'wx',description:'黑色'}).valid],
+ ['05 标题超过30字符被拦截',()=>!C.validateListing({type:'lost',title:'a'.repeat(31),category:'其他',location:'教室',date:'2026-10-01',contact:'wx',description:'描述'}).valid],
+ ['06 关键词搜索忽略大小写',()=>C.filterListings([{title:'Blue Card',location:'图书馆',description:'',category:'证件卡类',type:'lost',status:'active'}],{keyword:'blue',type:'',category:'',status:''}).length===1],
+ ['07 可按地点搜索',()=>C.filterListings([{title:'校园卡',location:'图书馆二楼',description:'',category:'证件卡类',type:'lost',status:'active'}],{keyword:'二楼',type:'',category:'',status:''}).length===1],
+ ['08 可按类型与状态组合筛选',()=>C.filterListings([{title:'卡',location:'A',description:'',category:'证件卡类',type:'lost',status:'active'},{title:'耳机',location:'B',description:'',category:'数码设备',type:'found',status:'active'}],{keyword:'',type:'found',category:'',status:'active'}).length===1],
+ ['09 待处理信息可更新为已解决',()=>C.transitionStatus({id:'1',status:'active'},'resolved').item.status==='resolved'],
+ ['10 已解决信息不能重复更新',()=>!C.transitionStatus({id:'1',status:'resolved'},'resolved').ok],
+ ['11 不支持的状态变更被拒绝',()=>!C.transitionStatus({id:'1',status:'active'},'active').ok],
+ ['12 空关键词返回符合其他条件的数据',()=>C.filterListings([{title:'卡',location:'A',description:'',category:'证件卡类',type:'lost',status:'active'}],{keyword:'',type:'lost',category:'',status:'active'}).length===1]
+];let passed=0;const box=document.getElementById('results');rows.forEach(([name,fn])=>{let ok=false,detail='';try{ok=!!fn()}catch(e){detail=e.message}if(ok)passed++;box.insertAdjacentHTML('beforeend',`<div class="${ok?'pass':'fail'}">${ok?'✓':'✗'} ${name}${detail?'：'+detail:''}</div>`)});document.getElementById('summary').textContent=`测试结果：${passed}/${rows.length} 通过`;
+</script></body></html>
